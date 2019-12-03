@@ -1,0 +1,157 @@
+Koening lab
+RDP -- 172.25.90.90
+user: koenig-cloud\vm150107
+RD Gateway: rdp.koening-solutions.com
+passwd: koenig@107
+
+in vcentre -- vcenter.koenig-cloud.com
+kiosk/redhat
+
+============================================
+practise Task: Unpreviledged user
+student:student
+root:redhat
+============================================
+
+controlled nodes -- where ansible is installed.
+Managed nodes -- rest other infrastructure. (win, Linux, Unix, Router, Swithes)
+
+
+-----------ansible.cfg---
+
+[defaults]
+invenroty=/.inventory
+remore_user=student
+ask_pass=no/false/0 (configure key base login)
+[privilege_escalation]
+become=yes/true/1 (means we want to execute with privilege user)
+become_user=root
+become_method=sudo ( which method to use to runt the administrator previledge)
+become_ask_pass=0/false/no ( need configure no pass in suders as well) -- need to check
+
+SELINUX section,
+Primico section -- when using older version of ssh on managed hosts,
+=============vi inventory==
+192.* anisble_connection:winrm,ansible_port=5986
+#above host will connect to windows
+172.* ansible_connection:ssh
+
+===
+Adhoc command
+
+ansible host-pattern - m module [ -a 'module arguments']
+
+#host pattern -- list of hosts
+
+to see the list of the moduels
+ansible-doc -m
+ansible-doc -l -t connection #list of all connection types present in ansible.
+
+set command displays local and remote variables 
+use shell module in case of finding  dependig upon variable modules in that env.
+check raw module.
+
+=============
+Always write inventory in correct alphabatic order
+
+#ansible-doc -s yum
+Above statement is used to tell which keywords can be used in that modules.
+
+ansible-doc modulename
+#check at last before example if the module is stable and who supports it.
+
+ansible-inventory --graph (shows inventory in tree structure)
+groupname will come in @
+
+==========facts==
+facts name to ne degined as name extension .fact
+
+on managed node we need to create recurrsive directory on managed nodes.
+and send the copy of control host fact to managed hosts.
+
+=====================
+inventory file download. (242 page)
+
+include vs import
+include: shows task during runtime only.
+import: we can see the static tasklist before running the tasks.
+
+tags --
+skip tags
+
+galaxy.ansible.com
+
+=================
+Reducing tab spaces
+Make ~/.vimrc and add this:
+
+set tabstop=4
+Here are some other helpful ones:
+
+syntax on " Syntax highlighting
+set showmatch " Shows matching brackets
+set ruler " Always shows location in file (line#)
+set smarttab " Autotabs for certain code
+set shiftwidth=4
+
+=============Create roles directory====
+mkdir roles
+cd roles
+ansible-galaxy init test-roles
+
+=========troubleshooting===
+by default there is no log file.
+need to enable login
+
+1) log_path=./log/pathname
+
+step is interactive mode execution.
+
+task , add_host -- adding host when it is not part of inventory (learn).
+name hostname,
+ipaddress
+
+
+delegate_to servera -- runnig a task in perticular host.
+Eg: 
+- uri
+    url: http://servera
+  delegate_to: servera
+  
+===================================
+[root@shiv-dt2 ~]# ip a
+10.239.197.111/24
+
+1) Installing Anisble
+[root@shiv-dt2 ~]# yum install ansible
+
+Get failed with follwing error.
+warning: /var/cache/yum/x86_64/7/epel/packages/sshpass-1.06-1.el7.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID 352c64e5: NOKEY
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+
+2) Added new repository
+GPG key retrieval failed: [Errno 14] curl#37 - "Couldn't open file /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
+[root@shiv-dt2 ~]# yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+Installed succeffully Ansible.
+
+3)Check ansible installation location and version
+[root@shiv-dt2 ~]# cd /etc/ansible/
+[root@shiv-dt2 ansible]# ls
+ansible.cfg  hosts  roles
+[root@shiv-dt2 ansible]# ansible --version
+ansible 2.8.4
+  config file = /etc/ansible/ansible.cfg
+
+3) Create password less authentication
+https://www.howtoforge.com/tutorial/setup-new-user-and-ssh-key-authentication-using-ansible/
+
+
+4)[root@shiv-dt2 ~]# mkpasswd -l 15 -d 3 -C 5
+Ua1FhaGf?TnTd15
+
+5) stall Apache package using “ad-hoc” command.
+
+“-b” option used for escalating the privilege.
+“-m” option used for specifying the module.
+[sysadmin@ansible-server ~]$ ansible all -b -m yum -a "name=httpd state=present"
